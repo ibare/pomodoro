@@ -1,0 +1,21 @@
+{
+  "name": "Pomodoro Timer",
+  "short_name": "Pomodoro",
+  "description": "A simple and elegant Pomodoro timer",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "pomodoro_timer@1x.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "pomodoro_timer@2x.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
