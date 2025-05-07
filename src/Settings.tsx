@@ -43,7 +43,7 @@ const Settings = () => {
         label="Pomodoro Minutes"
         value={workMinutes}
         onIncrement={() => setWorkMinutes(workMinutes + 5)}
-        onDecrement={() => setWorkMinutes(workMinutes <= 5 ? workMinutes : workMinutes - 5)}
+        onDecrement={() => setWorkMinutes(workMinutes <= 1 ? workMinutes : workMinutes - 1)}
       />
       <Counter
         label="Break Minutes"

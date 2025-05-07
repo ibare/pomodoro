@@ -7,6 +7,7 @@ import DescriptionText from './components/Description';
 import Button from './components/Button';
 import Space from './components/Space';
 import ActionSheet from './ActionSheet';
+import Maybe from './components/Maybe';
 import Settings from './Settings';
 import soundNowLoading from '../public/now-loading.mp3';
 import soundGameWon from '../public/game-won.mp3';
@@ -24,16 +25,17 @@ const Pomodoro = () => {
   const [currentCycle, setCurrentCycle] = useState(0); // #0, #1 ...
   const [elapsed, setElapsed] = useState(0);
 
-  const TOTAL_CYCLES = ms(pomodoroCount);
+  const TOTAL_CYCLES = pomodoroCount;
   const WORK_DURATION = ms(workMinutes);
   const BREAK_DURATION = ms(breakMinutes);
   const requestRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
 
-  const [isWorking, isBreaking, isIdle] = [
+  const [isWorking, isBreaking, isIdle, isDone] = [
     phase === 'working', 
     phase === 'break', 
-    phase === 'idle'
+    phase === 'idle',
+    phase === 'done',
   ]
 
   const currentDuration = isWorking ? WORK_DURATION : isBreaking ? BREAK_DURATION : 0;
@@ -59,11 +61,11 @@ const Pomodoro = () => {
           setPhase('break');
         }
       } else if (isBreaking) {
-        // break 끝 → 다음 작업 사이클로
         if (currentCycle >= TOTAL_CYCLES) {
           playVictory();
           setPhase('done');
         } else {
+          playNowLoading();
           startTimeRef.current = null;      
           setElapsed(0);
           setCurrentCycle((c) => c + 1);
@@ -84,6 +86,11 @@ const Pomodoro = () => {
     };
   }, [phase]);
 
+  const restartPomodoro = () => {
+    setPhase('idle');
+    setCurrentCycle(0);
+  }
+
   const startPomodoro = () => {
     playNowLoading();
     setElapsed(0);
@@ -99,34 +106,53 @@ const Pomodoro = () => {
     const sec = Math.floor(remaining / 1000);
     const minutes = Math.floor(sec / 60).toString().padStart(2, '0');
     const seconds = (sec % 60).toString().padStart(2, '0');
-    return `${minutes}:${seconds}`;
+    return { minutes, seconds };
   };
+
+  const formatElapsed = formatTime(elapsed);
 
   return (
     <div className={clsx(
       'flex flex-col justify-between min-h-screen w-full p-8 text-center',
       {
-        'bg-neutral-100 text-black': !isBreaking,
-        'bg-blue-500 text-white': isBreaking,
+        'bg-white text-black': !isBreaking,
+        'bg-gray-800 text-gray-200': isBreaking,
       }
     )}>
-      {/* 상단 */}
-      <div className="space-y-4">
-        <div className="text-2xl font-light">#{currentCycle}</div>
-        <div className="text-8xl font-bold">{formatTime(elapsed)}</div>
+      <div>
+        <Space size={4} />
+        <Maybe test={!isIdle}>
+          <div className="text-2xl font-thin text-gray-400">#{currentCycle}</div>
+        </Maybe>
+        <Maybe test={isDone}>
+          <div className="text-[10em] font-thin">🥳</div>
+        </Maybe>
+        <Space size={4} />
+        <Maybe test={!isDone}>
+          <div className="text-[10em] font-thin">{formatElapsed.minutes}</div>
+          <Maybe test={isWorking || isBreaking}>
+            <div className="text-6xl font-thin text-cyan-400">{formatElapsed.seconds}</div>
+          </Maybe>
+        </Maybe>
       </div>
 
-      {/* 하단 */}
       <div className="flex flex-col items-center space-y-2">
+        <Maybe test={isBreaking}>
+          <div className="text-lg font-semibold text-green-600">You’ve earned a breather 😌</div>
+        </Maybe>
+
+        <Maybe test={isDone}>
+          <div className="text-lg font-semibold text-green-600">All Done!</div>
+          <Button click={restartPomodoro} type="text" label="Restart" />
+        </Maybe>
         <DescriptionText>{`${pomodoroCount} times, ${workMinutes} to ${breakMinutes} minutes`}</DescriptionText>
         <Space size={4} />
-        {phase === 'idle' && currentCycle < TOTAL_CYCLES && (
+        <Maybe test={isIdle && currentCycle < TOTAL_CYCLES}>
           <Button click={startPomodoro} label="Start" />
-        )}
-        {phase === 'done' && (
-          <div className="text-lg font-semibold text-green-600">All Done!</div>
-        )}
-        <Button click={() => setSettingOpen(true)} type="text" label="Setting" />
+          <Button click={() => setSettingOpen(true)} type="text" label="Setting" />
+        </Maybe>
+        <Space size={12}/>
+        <DescriptionText>© JinSoft</DescriptionText>
       </div>
       <ActionSheet isOpen={isSettingOpen} onClose={() => setSettingOpen(false)}>
         <Settings />

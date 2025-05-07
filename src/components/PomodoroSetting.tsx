@@ -10,7 +10,7 @@ type PomodoroSettingsContextType = {
 };
 
 const DEFAULT_SETTINGS = {
-  pomodoroCount: 5,
+  pomodoroCount: 4,
   workMinutes: 25,
   breakMinutes: 5,
 };
